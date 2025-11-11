@@ -1,0 +1,21 @@
+{
+  "name": "slack-langchain-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "predev": "python3 -m pip install -r python/requirements.txt || pip3 install -r python/requirements.txt",
+    "dev": "npx --yes concurrently -k -n py,node -c green,blue \"python3 -m uvicorn python.server:app --reload --port 8000\" \"node index.js\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@slack/bolt": "^4.6.0",
+    "axios": "^1.13.1",
+    "dotenv": "^17.2.3"
+  }
+}
