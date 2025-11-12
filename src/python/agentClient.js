@@ -76,12 +76,18 @@ async function sendToPythonAgent(payload, progressCallback = null) {
   
   // Mensajes de progreso
   const progressMessages = [
-    '🎯 Analizando tu objetivo...',
-    '🔍 Buscando tus skills...',
-    '✨ Armando objetivo SMART...',
-    '📊 Generando roadmap personalizado...',
-    '🧠 Procesando con IA...',
-    '⚡ Finalizando análisis...'
+    'Dale Don, dale',
+    'Salió el sol',
+    'Dile que bailando te conocí',
+    'La mano arriba, cintura sola',
+    'Da media vuelta',
+    'Aunque digan que soy un bandolero',
+    'Ella y yo',
+    'Ella es la diva virtual',
+    'Hasta que salga el sol',
+    'Taboo',
+    'Conteo',
+    'Danza Kuduro'
   ];
   
   let progressIndex = 0;

@@ -4,6 +4,7 @@ from .nodes.reviewer import review_objective
 from .nodes.smart_obj import to_smart_objective
 from .nodes.rag import retrieve_context
 from .nodes.roadmap import build_roadmap
+from .nodes.final_assignment import build_final_assignment
 from langgraph.graph import StateGraph, START, END
 from langsmith import traceable
 
@@ -17,6 +18,7 @@ class AgentState(TypedDict):
     smart_objective: str
     context: str
     roadmap: str
+    final_assignment: str
 
 @traceable
 async def reviewer_node(state: AgentState) -> AgentState:
@@ -98,7 +100,7 @@ async def rag_node(state: AgentState) -> AgentState:
     print(f"🗄️  Collection: docs | k=5")
     
     try:
-        context = retrieve_context(objective, collection_name="docs", k=5)
+        context = retrieve_context(objective, collection_name="docs", k=1)
         context_length = len(context) if context else 0
         print(f"✅ Retrieved: {context_length} chars of context")
     except Exception as e:
@@ -137,11 +139,31 @@ async def roadmap_builder_node(state: AgentState) -> AgentState:
     roadmap = await build_roadmap(smart, ctx, skills, deadline)
     
     print(f"✅ Generated: {len(roadmap)} chars")
-    print(f"➡️  Next: END")
+    print(f"➡️  Next: FINAL ASSIGNMENT NODE")
     
     return {
         **state,
         "roadmap": roadmap or "",
+    }
+
+
+@traceable
+async def final_assignment_node(state: AgentState) -> AgentState:
+    """
+    Assigns the final assignment to the user based on roadmap and skills.
+    Must return a moderately detailed, point-by-point assignment.
+    """
+    roadmap = state.get("roadmap", "") or ""
+    skills = state.get("skills", [])
+    print("\n" + "="*60)
+    print("🧪  [FINAL] FINAL ASSIGNMENT NODE")
+    print("="*60)
+    print(f"📚 Roadmap length: {len(roadmap)} chars | Skills: {len(skills)}")
+    assignment = await build_final_assignment(roadmap, skills)
+    print(f"✅ Final assignment: {len(assignment)} chars")
+    return {
+        **state,
+        "final_assignment": assignment or "",
     }
 
 
@@ -161,6 +183,7 @@ workflow.add_node("reviewer", reviewer_node)
 workflow.add_node("to_smart_obj", to_smart_obj_node)
 workflow.add_node("rag", rag_node)
 workflow.add_node("roadmap_builder", roadmap_builder_node)
+workflow.add_node("final_assignment_task", final_assignment_node)
 
 workflow.add_edge(START, "reviewer")
 workflow.add_conditional_edges(
@@ -173,7 +196,8 @@ workflow.add_conditional_edges(
 )
 workflow.add_edge("to_smart_obj", "rag")
 workflow.add_edge("rag", "roadmap_builder")
-workflow.add_edge("roadmap_builder", END)
+workflow.add_edge("roadmap_builder", "final_assignment_task")
+workflow.add_edge("final_assignment_task", END)
 
 app = workflow.compile()
 
@@ -181,7 +205,7 @@ app = workflow.compile()
 @traceable
 async def run_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    Executes the LangGraph workflow for reviewing, SMART-transforming and retrieving context.
+    Executes the LangGraph workflow for reviewing, SMART-transforming, retrieving context, building roadmap, and final assignment.
     """
     print("\n" + "🚀" + "="*58 + "🚀")
     print("           PIPELINE EXECUTION STARTED")
@@ -196,6 +220,7 @@ async def run_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
         "smart_objective": "",
         "context": "",
         "roadmap": "",
+        "final_assignment": "",
     }
     
     print(f"📊 Initial State:")
@@ -239,11 +264,13 @@ async def run_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
     
     smart_text = (result.get("smart_objective") or "").strip()
     roadmap = (result.get("roadmap") or "").strip()
+    final_assignment = (result.get("final_assignment") or "").strip()
     deadline = result.get("deadline", "1 mes")
     
     print(f"✅ Status: {result.get('status', 'ok')}")
     print(f"📝 SMART objective: {len(smart_text)} chars")
     print(f"🗺️  Roadmap: {len(roadmap)} chars")
+    print(f"🧪  Final assignment: {len(final_assignment)} chars")
     print(f"⏰ Deadline: {deadline}")
     
     # Build a single response string with rich formatting
@@ -252,6 +279,8 @@ async def run_pipeline(payload: Dict[str, Any]) -> Dict[str, Any]:
         response_parts.append(f"✨ *OBJETIVO SMART*\n\n{smart_text}")
     if roadmap:
         response_parts.append(f"🗺️ *ROADMAP DE APRENDIZAJE* _(Plazo: {deadline})_\n\n{roadmap}")
+    if final_assignment:
+        response_parts.append(f"🧪 *TRABAJO FINAL*\n\n{final_assignment}")
     
     separator = "\n\n" + "─" * 40 + "\n\n"
     response = separator.join(response_parts) if response_parts else ""

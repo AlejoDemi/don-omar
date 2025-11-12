@@ -3,6 +3,7 @@ __all__ = [
     "smart_obj",
     "rag",
     "roadmap",
+    "final_assignment",
 ]
 
 

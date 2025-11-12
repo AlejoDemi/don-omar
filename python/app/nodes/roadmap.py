@@ -70,6 +70,10 @@ async def build_roadmap(smart_objective: str, context: str, skills: List[Dict[st
         "- PRIORIDAD 1: Usa los links/URLs que aparecen en el contexto proporcionado\n"
         "- PRIORIDAD 2: Solo si no hay links en el contexto, usa recursos conocidos relevantes\n"
         "- Si el contexto menciona cursos específicos, úsalos directamente\n\n"
+        "PROHIBIDO EN EL ROADMAP:\n"
+        "- No propongas 'proyecto final', 'trabajo final' ni 'proyecto integrador'\n"
+        "- No incluyas entregables ni evaluación final\n"
+        "- El roadmap debe ser SOLO una secuencia de CONCEPTOS a aprender\n\n"
         "Devuelve solo el roadmap formateado, sin texto adicional."
     )
 
@@ -135,62 +139,59 @@ def _format_skills(skills: List[Dict[str, Any]] = None) -> str:
 
 
 def _fallback_roadmap(smart_objective: str, context: str, skills: List[Dict[str, Any]] = None, deadline: str = "1 mes") -> str:
-    base = (smart_objective or "Aprender un tema técnico").strip()
-    has_skills = skills and len(skills) > 0
-    
-    # Ajustar número de pasos según el deadline
-    deadline_lower = deadline.lower()
+    # Concept-only roadmap (no proyecto/trabajo final)
+    deadline_lower = (deadline or "").lower()
     if "semana" in deadline_lower and not "mes" in deadline_lower:
-        # Plazo corto: 2 pasos
+        # Plazo corto: 2 pasos (conceptos)
         return (
-            f"*📚 1. Fundamentos Esenciales*\n"
-            f"Comprende los conceptos básicos clave para {base}.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.6)}\n"
-            f"🔗 _Links:_ https://developer.mozilla.org/\n\n"
-            f"*📚 2. Práctica Inicial*\n"
-            f"Aplica lo aprendido en un ejercicio práctico pequeño.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.4)}\n"
-            f"🔗 _Links:_ https://www.freecodecamp.org/"
+            f"*📚 1. Fundamentos y arquitectura*\n"
+            f"Conceptos base, CLI y flujo general para entender el tema.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.5)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/get-started/\n\n"
+            f"*📚 2. Imágenes y contenedores*\n"
+            f"Creación de Dockerfiles, build, run, logs y lifecycle.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.5)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/engine/reference/builder/"
         )
     elif "6 mes" in deadline_lower or "año" in deadline_lower:
-        # Plazo largo: 5 pasos
+        # Plazo largo: 5 pasos (conceptos)
         return (
-            f"*📚 1. Fundamentos del Tema*\n"
-            f"Domina los principios básicos para {base}.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.2)}\n"
-            f"🔗 _Links:_ https://developer.mozilla.org/\n\n"
-            f"*📚 2. Conceptos Intermedios*\n"
-            f"Profundiza en técnicas y patrones avanzados.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.25)}\n"
-            f"🔗 _Links:_ https://www.freecodecamp.org/\n\n"
-            f"*📚 3. Proyecto Práctico*\n"
-            f"Desarrolla un proyecto completo aplicando todo lo aprendido.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.3)}\n"
-            f"🔗 _Links:_ https://github.com/\n\n"
-            f"*📚 4. Optimización y Mejores Prácticas*\n"
-            f"Refina el proyecto con patrones profesionales.\n"
+            f"*📚 1. Fundamentos y arquitectura*\n"
+            f"CLI, imágenes vs contenedores, capas y registro.\n"
             f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.15)}\n"
-            f"🔗 _Links:_ https://refactoring.guru/\n\n"
-            f"*📚 5. Despliegue y Documentación*\n"
-            f"Publica el proyecto y documenta todo el proceso.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.1)}\n"
-            f"🔗 _Links:_ https://docs.docker.com/"
+            f"🔗 _Links:_ https://docs.docker.com/get-started/\n\n"
+            f"*📚 2. Dockerfiles avanzados*\n"
+            f"Capas, caching, multi-stage builds y optimización de tamaño.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.25)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/build/building/multi-stage/\n\n"
+            f"*📚 3. Redes y Compose*\n"
+            f"Servicios, redes bridge, dependencias y orquestación local.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.25)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/compose/\n\n"
+            f"*📚 4. Volúmenes y persistencia*\n"
+            f"Montajes, permisos y estrategias de datos.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.2)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/storage/volumes/\n\n"
+            f"*📚 5. Seguridad y mejores prácticas*\n"
+            f"Usuarios no-root, escaneo, límites de recursos y CI.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.15)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/develop/security-best-practices/"
         )
     else:
-        # Plazo medio (1-3 meses): 3 pasos
+        # Plazo medio (1-3 meses): 3 pasos (conceptos)
         return (
-            f"*📚 1. Fundamentos del Tema*\n"
-            f"Asegura comprensión de los principios básicos para {base}.\n"
+            f"*📚 1. Fundamentos e imágenes*\n"
+            f"CLI básica, Dockerfiles, build y gestión de imágenes.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.35)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/get-started/\n\n"
+            f"*📚 2. Contenedores, redes y Compose*\n"
+            f"Run/exec/logs, redes y definición de servicios con Compose.\n"
             f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.4)}\n"
-            f"🔗 _Links:_ https://developer.mozilla.org/\n\n"
-            f"*📚 2. Práctica Guiada*\n"
-            f"Realiza un proyecto aplicando los conceptos clave.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.4)}\n"
-            f"🔗 _Links:_ https://www.freecodecamp.org/\n\n"
-            f"*📚 3. Despliegue*\n"
-            f"Publica el proyecto y documenta el proceso.\n"
-            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.2)}\n"
-            f"🔗 _Links:_ https://docs.docker.com/"
+            f"🔗 _Links:_ https://docs.docker.com/compose/\n\n"
+            f"*📚 3. Volúmenes y seguridad*\n"
+            f"Persistencia de datos y prácticas de seguridad esenciales.\n"
+            f"⏱️ _Tiempo:_ {_calculate_step_time(deadline, 0.25)}\n"
+            f"🔗 _Links:_ https://docs.docker.com/storage/volumes/"
         )
 
 
