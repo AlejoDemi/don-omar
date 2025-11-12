@@ -71,11 +71,36 @@ function extractResponseFromAgentOutput(output) {
   return null;
 }
 
-async function sendToPythonAgent(payload) {
+async function sendToPythonAgent(payload, progressCallback = null) {
   const agentUrl = process.env.PY_AGENT_URL || 'http://127.0.0.1:8000/agent';
+  
+  // Mensajes de progreso
+  const progressMessages = [
+    '🎯 Analizando tu objetivo...',
+    '🔍 Buscando tus skills...',
+    '✨ Armando objetivo SMART...',
+    '📊 Generando roadmap personalizado...',
+    '🧠 Procesando con IA...',
+    '⚡ Finalizando análisis...'
+  ];
+  
+  let progressIndex = 0;
+  let progressInterval = null;
+  
+  // Iniciar mensajes de progreso si hay callback
+  if (progressCallback && typeof progressCallback === 'function') {
+    progressInterval = setInterval(() => {
+      if (progressIndex < progressMessages.length) {
+        progressCallback(progressMessages[progressIndex]);
+        progressIndex++;
+      }
+    }, 10000); // Cada 10 segundos
+  }
+  
   try {
     const axios = require('axios');
-    const res = await axios.post(agentUrl, payload, { timeout: 15000 });
+    const res = await axios.post(agentUrl, payload, { timeout: 30000 });
+    if (progressInterval) clearInterval(progressInterval);
     return JSON.stringify(res && res.data);
   } catch (httpErr) {
     return new Promise((resolve, reject) => {
@@ -98,6 +123,7 @@ async function sendToPythonAgent(payload) {
       });
 
       py.on('close', (code) => {
+        if (progressInterval) clearInterval(progressInterval);
         if (code === 0) {
           resolve(stdout.trim());
         } else {
@@ -109,6 +135,7 @@ async function sendToPythonAgent(payload) {
         py.stdin.write(JSON.stringify(payload));
         py.stdin.end();
       } catch (err) {
+        if (progressInterval) clearInterval(progressInterval);
         reject(err);
       }
     });
