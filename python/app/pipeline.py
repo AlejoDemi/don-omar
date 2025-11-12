@@ -97,7 +97,7 @@ async def rag_node(state: AgentState) -> AgentState:
     
     objective = state.get("objective", "") or ""
     print(f"🔎 Query: '{objective[:80]}...'")
-    print(f"🗄️  Collection: docs | k=5")
+    print(f"🗄️  Collection: docs | k=1")
     
     try:
         context = retrieve_context(objective, collection_name="docs", k=1)
